@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
+const isEmail = require('validator/lib/isEmail');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
     minlength: 2,
     maxlength: 30,
-    default: 'Жак-Ив Кусто',
+    default: 'Жак-Ив Кусто'
   },
   about: {
     type: String,
@@ -22,18 +22,18 @@ const userSchema = new mongoose.Schema({
       },
       message: (props) => `ссылка для аватара ${props.value} невалидна`,
     },
-    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'
   },
   email: {
     type: String,
-    unique: true,
     required: true,
-    validate: validator.isEmail('foo@bar.com'),
+    unique: true,
+    validate: isEmail
   },
   password: {
     type: String,
     required: true,
-    minlength: 8,
+    minlength: 8
   },
 });
 

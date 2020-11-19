@@ -4,6 +4,29 @@ const {
   ERROR_CODE_USER, ERROR_CODE_BAD_REQUEST, ERROR_CODE_SERVER, message400, message500,
 } = require('../utils/error_codes');
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      if (!matched) {
+        // хеши не совпали — отклоняем промис
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      // аутентификация успешна
+      res.send({ message: 'Всё верно!' });
+    })
+    .catch((err) => {
+      res
+        .status(401).send({ message: err.message });
+    });
+};
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({});
@@ -37,12 +60,11 @@ const getUser = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const id = User.countDocuments();
-    const { name, about, avatar, email, password } = req.body;
-    bcrypt.hash({ password }, 10);
+    bcrypt.hash(req.body.password, 10);
+    const { name, about, avatar, email, password } = req.body; // todo
     const user = await ((hash) => User.create({
       id, name, about, avatar, email, password: hash
     }));
-    console.log(user);
     res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {
