@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const {
   ERROR_CODE_USER, ERROR_CODE_BAD_REQUEST, ERROR_CODE_SERVER, message400, message500,
@@ -36,10 +37,12 @@ const getUser = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const id = User.countDocuments();
-    const { name, about, avatar } = req.body;
-    const user = await User.create({
-      id, name, about, avatar,
-    });
+    const { name, about, avatar, email, password } = req.body;
+    bcrypt.hash({ password }, 10);
+    const user = await ((hash) => User.create({
+      id, name, about, avatar, email, password: hash
+    }));
+    console.log(user);
     res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {

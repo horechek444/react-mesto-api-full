@@ -6,13 +6,7 @@ const {
 
 router.get('/', getUsers);
 router.get('/:id', getUser);
-router.post('/', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().pattern(/^https?:\/\/(www\.)?[\w-.~:/?#[\]@!$&'()*+,;=]+#?$/i),
-  }),
-}), createUser);
+router.post('/', createUser);
 router.patch('/me', updateUser);
 router.patch('/me/avatar', updateAvatarUser);
 
