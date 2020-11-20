@@ -57,24 +57,31 @@ const getUser = async (req, res) => {
   }
 };
 
-const createUser = async (req, res) => {
-  try {
-    const id = User.countDocuments();
-    bcrypt.hash(req.body.password, 10);
-    const { name, about, avatar, email, password } = req.body; // todo
-    const user = await ((hash) => User.create({
-      id, name, about, avatar, email, password: hash
-    }));
-    res.send(user);
-  } catch (err) {
-    if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else if (err.name === 'ValidationError') {
-      res.status(ERROR_CODE_USER).send({ message: err.message });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
-    }
+const createUser = (req, res) => {
+  const id = User.countDocuments();
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(ERROR_CODE_USER).send({ message: message400 });
   }
+
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        return res.status(409).send({ message: 'Уже есть такой email' });
+      }
+
+      return bcrypt.hash(password, 10);
+    })
+    .then((hash) => {
+      User.create({ email, password: hash })
+        .then(({ email, _id }) => {
+          res.send({ email, _id })
+        })
+        .catch(err => {
+          res.status(ERROR_CODE_SERVER).send({ message: message500 });
+        })
+    })
 };
 
 const updateUser = async (req, res) => {
@@ -113,5 +120,5 @@ const updateAvatarUser = async (req, res) => {
 };
 
 module.exports = {
-  getUsers, getUser, createUser, updateUser, updateAvatarUser,
+  getUsers, getUser, createUser, updateUser, updateAvatarUser, login
 };

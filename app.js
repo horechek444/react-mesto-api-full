@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const usersRoutes = require('./routes/users.js');
 const cardsRoutes = require('./routes/cards.js');
 const { ERROR_CODE_BAD_REQUEST } = require('./utils/error_codes');
+const { login, createUser } = require('./controllers/users')
 
 const app = express();
 const PORT = 3000;
@@ -28,6 +29,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use('/users', usersRoutes);
 app.use('/cards', cardsRoutes);
 
