@@ -1,31 +1,9 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
   ERROR_CODE_USER, ERROR_CODE_BAD_REQUEST, ERROR_CODE_SERVER, message400, message500,
 } = require('../utils/error_codes');
-
-const login = (req, res) => {
-  const { email, password } = req.body;
-  User.findOne({ email })
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        // хеши не совпали — отклоняем промис
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      // аутентификация успешна
-      res.send({ message: 'Всё верно!' });
-    })
-    .catch((err) => {
-      res
-        .status(401).send({ message: err.message });
-    });
-};
 
 const getUsers = async (req, res) => {
   try {
@@ -58,7 +36,6 @@ const getUser = async (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const id = User.countDocuments();
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -82,6 +59,33 @@ const createUser = (req, res) => {
           res.status(ERROR_CODE_SERVER).send({ message: message500 });
         })
     })
+};
+
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(ERROR_CODE_USER).send({ message: message400 });
+  }
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          const token = jwt.sign({ _id: user._id }, 'eat_the_peach', { expiresIn: '7d'}); // todo
+          res.send(token);
+        })
+    })
+    .catch((err) => {
+      res
+        .status(401).send({ message: err.message });
+    });
 };
 
 const updateUser = async (req, res) => {
