@@ -1,14 +1,20 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
   ERROR_CODE_USER, ERROR_CODE_BAD_REQUEST, ERROR_CODE_SERVER, message400, message500,
 } = require('../utils/error_codes');
+const jwtVerify = require('../utils/jwt-verify');
+const jwtSign = require('../utils/jwt-sign');
 
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({});
-    res.send(users);
+    const isVerified = await jwtVerify(req.headers.authorization);
+    if (!isVerified) {
+      return res.status(401).send({message: 'forbidden'} )
+    } else {
+      const users = await User.find({});
+      res.send(users);
+    }
   } catch (err) {
     if (err.name === 'CastError') {
       res.status(ERROR_CODE_USER).send({ message: message400 });
@@ -78,7 +84,7 @@ const login = (req, res) => {
           if (!matched) {
             return Promise.reject(new Error('Неправильные почта или пароль'));
           }
-          const token = jwt.sign({ _id: user._id }, 'eat_the_peach', { expiresIn: '7d'}); // todo
+          const token = jwtSign(user._id); // todo
           res.send(token);
         })
     })

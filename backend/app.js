@@ -4,7 +4,8 @@ const bodyParser = require('body-parser');
 const usersRoutes = require('./routes/users.js');
 const cardsRoutes = require('./routes/cards.js');
 const { ERROR_CODE_BAD_REQUEST } = require('./utils/error_codes');
-const { login, createUser } = require('./controllers/users')
+const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
 const app = express();
 const PORT = 3000;
@@ -19,18 +20,13 @@ const mongooseConnectOptions = {
 
 mongoose.connect(mongoDbUrl, mongooseConnectOptions);
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5f9330c206245a0af5dd63ff',
-  };
-  next();
-});
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/signin', login);
 app.post('/signup', createUser);
+
+app.use(auth);
 
 app.use('/users', usersRoutes);
 app.use('/cards', cardsRoutes);
