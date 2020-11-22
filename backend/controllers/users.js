@@ -24,9 +24,28 @@ const getUsers = async (req, res) => {
   }
 };
 
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    console.log(req.user);
+    if (!user) {
+      res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет пользователя с таким id' });
+    } else {
+      res.send(user);
+    }
+  } catch (err) {
+    if (err.name === 'CastError') {
+      res.status(ERROR_CODE_USER).send({ message: message400 });
+    } else {
+      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+    }
+  }
+};
+
 const getUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
+    console.log(user);
     if (!user) {
       res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет пользователя с таким id' });
     } else {
@@ -130,5 +149,5 @@ const updateAvatarUser = async (req, res) => {
 };
 
 module.exports = {
-  getUsers, getUser, createUser, updateUser, updateAvatarUser, login
+  getUsers, getUser, createUser, updateUser, updateAvatarUser, login, getCurrentUser
 };
