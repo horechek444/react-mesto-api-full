@@ -19,7 +19,7 @@ const getCards = async (req, res) => {
 const createCard = async (req, res) => {
   try {
     const { name, link } = req.body;
-    const owner = req.user._id;
+    const owner = req.user.id;
     const card = await Card.create({
       owner, name, link,
     });
@@ -37,11 +37,20 @@ const createCard = async (req, res) => {
 
 const deleteCard = async (req, res) => {
   try {
-    const card = await Card.findByIdAndRemove(req.params.id);
-    if (!card) {
-      res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет карточки с таким id' });
+    const currentUser = req.user.id;
+    const cardId = req.params.id;
+    const cardForConfirm = await Card.findById(cardId);
+    if (currentUser !== cardForConfirm.owner.toString()) {
+      res.status(ERROR_CODE_USER).send({ message: 'Вы не владелец карточки и не можете её удалить' });
+      return;
     } else {
-      res.send(card);
+      const confirmedCard = await Card.findByIdAndRemove(cardId);
+      if (!cardId) {
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет карточки с таким id' });
+        return;
+      } else {
+        res.send(confirmedCard);
+      }
     }
   } catch (err) {
     if (err.name === 'CastError') {
@@ -56,7 +65,7 @@ const likeCard = async (req, res) => {
   try {
     const card = await Card.findByIdAndUpdate(
       req.params.id,
-      { $addToSet: { likes: req.user._id } },
+      { $addToSet: { likes: req.user.id } },
       { new: true },
     );
     if (!card) {
@@ -77,7 +86,7 @@ const disLikeCard = async (req, res) => {
   try {
     const card = await Card.findByIdAndUpdate(
       req.params.id,
-      { $pull: { likes: req.user._id } },
+      { $pull: { likes: req.user.id } },
       { new: true },
     );
     if (!card) {

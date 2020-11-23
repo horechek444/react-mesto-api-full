@@ -10,7 +10,7 @@ const auth = require('./middlewares/auth');
 const app = express();
 const PORT = 3000;
 
-const mongoDbUrl = 'mongodb://localhost:27017/mestodb';
+const mongoDbUrl = 'mongodb://127.0.0.1:27017/mestodb';
 const mongooseConnectOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -28,8 +28,8 @@ app.post('/signup', createUser);
 
 app.use(auth);
 
-app.use('/users', usersRoutes);
-app.use('/cards', cardsRoutes);
+app.use('/users', auth, usersRoutes);
+app.use('/cards', auth, cardsRoutes);
 
 app.all('*', (req, res) => res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый ресурс не найден' }));
 
