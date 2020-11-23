@@ -59,7 +59,7 @@ const createUser = (req, res) => {
     return res.status(ERROR_CODE_USER).send({ message: message400 });
   }
 
-  User.findOne({ email }).select('+password')
+  User.findOne({ email })
     .then((user) => {
       if (user) {
         return res.status(409).send({ message: 'Уже есть такой email' });
@@ -85,7 +85,7 @@ const login = (req, res) => {
     return res.status(ERROR_CODE_USER).send({ message: message400 });
   }
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));

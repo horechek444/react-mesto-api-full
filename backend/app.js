@@ -33,6 +33,10 @@ app.use('/cards', auth, cardsRoutes);
 
 app.all('*', (req, res) => res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый ресурс не найден' }));
 
+app.use((err, req, res, next) => {
+  res.send({ message: err.message });
+});
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
