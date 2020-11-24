@@ -1,8 +1,7 @@
 const Card = require('../models/card');
 const BadRequest = require('../errors/bad-request');
 const NotFoundError = require('../errors/not-found-err');
-
-const ERROR_CODE_USER = 400;
+const { ERROR_CODE } = require('../utils/error-code');
 
 const getCards = async (req, res, next) => {
   try {
@@ -10,7 +9,7 @@ const getCards = async (req, res, next) => {
     res.send(cards);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -26,7 +25,7 @@ const createCard = async (req, res, next) => {
     res.send(card);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -47,7 +46,7 @@ const deleteCard = async (req, res, next) => {
     res.send(confirmedCard);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -66,7 +65,7 @@ const likeCard = async (req, res, next) => {
     res.send(card);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -85,7 +84,7 @@ const disLikeCard = async (req, res, next) => {
     res.send(card);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }

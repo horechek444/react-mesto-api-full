@@ -4,8 +4,7 @@ const BadRequest = require('../errors/bad-request');
 const ConflictingRequest = require('../errors/conflicting-request');
 const NotFoundError = require('../errors/not-found-err');
 const jwtSign = require('../utils/jwt-sign');
-
-const ERROR_CODE_USER = 400;
+const { ERROR_CODE } = require('../utils/error-code');
 
 const getUsers = async (req, res, next) => {
   try {
@@ -13,7 +12,7 @@ const getUsers = async (req, res, next) => {
     res.send(users);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -28,7 +27,7 @@ const getCurrentUser = async (req, res, next) => {
     res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -43,7 +42,7 @@ const getUser = async (req, res, next) => {
     res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -99,7 +98,7 @@ const updateUser = async (req, res, next) => {
     res.send(user);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
@@ -113,7 +112,7 @@ const updateAvatarUser = async (req, res, next) => {
     res.send(avatar);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      err.statusCode = ERROR_CODE_USER;
+      err.statusCode = ERROR_CODE;
     }
     next(err);
   }
