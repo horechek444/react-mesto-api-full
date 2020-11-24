@@ -1,111 +1,96 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const {
-  ERROR_CODE_USER, ERROR_CODE_BAD_REQUEST, ERROR_CODE_SERVER, message400, message500,
-} = require('../utils/error_codes');
+const BadRequest = require('../errors/bad-request');
+const ConflictingRequest = require('../errors/conflicting-request');
+const NotFoundError = require('../errors/not-found-err');
 const jwtSign = require('../utils/jwt-sign');
 
-const getUsers = async (req, res) => {
+const ERROR_CODE_USER = 400;
+
+const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     res.send(users);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
-      res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет пользователя с таким id' });
-    } else {
-      res.send(user);
+      throw new NotFoundError('Нет пользователя с таким id');
     }
+    res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const getUser = async (req, res) => {
+const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет пользователя с таким id' });
-    } else {
-      res.send(user);
+      throw new NotFoundError('Нет пользователя с таким id');
     }
+    res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(ERROR_CODE_USER).send({ message: message400 });
-  }
 
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        return res.status(409).send({ message: 'Уже есть такой email' });
+        throw new ConflictingRequest('Уже есть такой email');
       }
-
-      return bcrypt.hash(password, 10);
     })
+    .catch(next);
+
+  bcrypt.hash(password, 10)
     .then((hash) => {
       User.create({ email, password: hash })
-        .then(({ email, _id }) => {
-          res.send({ email, _id })
-        })
-        .catch(err => {
-          res.status(ERROR_CODE_SERVER).send({ message: message500 });
-        })
+        .then(({ _id }) => {
+          res.send({ email, _id });
+        });
     })
+    .catch(next);
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(ERROR_CODE_USER).send({ message: message400 });
-  }
 
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        throw new BadRequest('Неправильные почта или пароль');
       }
       bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            throw new BadRequest('Неправильные почта или пароль');
           }
           const token = jwtSign(user._id); // todo
           res.send(token);
-        })
+        });
     })
-    .catch((err) => {
-      res
-        .status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndUpdate(req.user.id, {
       name: req.body.name,
@@ -113,33 +98,27 @@ const updateUser = async (req, res) => {
     }, { runValidators: true, new: true });
     res.send(user);
   } catch (err) {
-    if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else if (err.name === 'ValidationError') {
-      res.status(ERROR_CODE_USER).send({ message: err.message });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+    if (err.name === 'CastError' || err.name === 'ValidationError') {
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const updateAvatarUser = async (req, res) => {
+const updateAvatarUser = async (req, res, next) => {
   try {
     const avatar = await User.findByIdAndUpdate(req.user.id, {
       avatar: req.body.avatar,
     }, { runValidators: true, new: true });
     res.send(avatar);
   } catch (err) {
-    if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else if (err.name === 'ValidationError') {
-      res.status(ERROR_CODE_USER).send({ message: err.message });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+    if (err.name === 'CastError' || err.name === 'ValidationError') {
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
 module.exports = {
-  getUsers, getUser, createUser, updateUser, updateAvatarUser, login, getCurrentUser
+  getUsers, getUser, createUser, updateUser, updateAvatarUser, login, getCurrentUser,
 };

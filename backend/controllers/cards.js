@@ -1,22 +1,22 @@
 const Card = require('../models/card');
-const {
-  ERROR_CODE_USER, ERROR_CODE_BAD_REQUEST, ERROR_CODE_SERVER, message400, message500,
-} = require('../utils/error_codes');
+const BadRequest = require('../errors/bad-request');
+const NotFoundError = require('../errors/not-found-err');
 
-const getCards = async (req, res) => {
+const ERROR_CODE_USER = 400;
+
+const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     res.send(cards);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const createCard = async (req, res) => {
+const createCard = async (req, res, next) => {
   try {
     const { name, link } = req.body;
     const owner = req.user.id;
@@ -25,43 +25,35 @@ const createCard = async (req, res) => {
     });
     res.send(card);
   } catch (err) {
-    if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else if (err.name === 'ValidationError') {
-      res.status(ERROR_CODE_USER).send({ message: err.message });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+    if (err.name === 'CastError' || err.name === 'ValidationError') {
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const deleteCard = async (req, res) => {
+const deleteCard = async (req, res, next) => {
   try {
     const currentUser = req.user.id;
     const cardId = req.params.id;
     const cardForConfirm = await Card.findById(cardId);
     if (currentUser !== cardForConfirm.owner.toString()) {
-      res.status(ERROR_CODE_USER).send({ message: 'Вы не владелец карточки и не можете её удалить' });
-      return;
-    } else {
-      const confirmedCard = await Card.findByIdAndRemove(cardId);
-      if (!cardId) {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет карточки с таким id' });
-        return;
-      } else {
-        res.send(confirmedCard);
-      }
+      throw new BadRequest('Вы не владелец карточки и не можете её удалить');
     }
+    const confirmedCard = await Card.findByIdAndRemove(cardId);
+    if (!cardId) {
+      throw new NotFoundError('Нет карточки с таким id');
+    }
+    res.send(confirmedCard);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const likeCard = async (req, res) => {
+const likeCard = async (req, res, next) => {
   try {
     const card = await Card.findByIdAndUpdate(
       req.params.id,
@@ -69,20 +61,18 @@ const likeCard = async (req, res) => {
       { new: true },
     );
     if (!card) {
-      res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет карточки с таким id' });
-    } else {
-      res.send(card);
+      throw new NotFoundError('Нет карточки с таким id');
     }
+    res.send(card);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 
-const disLikeCard = async (req, res) => {
+const disLikeCard = async (req, res, next) => {
   try {
     const card = await Card.findByIdAndUpdate(
       req.params.id,
@@ -90,16 +80,14 @@ const disLikeCard = async (req, res) => {
       { new: true },
     );
     if (!card) {
-      res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Нет карточки с таким id' });
-    } else {
-      res.send(card);
+      throw new NotFoundError('Нет карточки с таким id');
     }
+    res.send(card);
   } catch (err) {
     if (err.name === 'CastError') {
-      res.status(ERROR_CODE_USER).send({ message: message400 });
-    } else {
-      res.status(ERROR_CODE_SERVER).send({ message: message500 });
+      err.statusCode = ERROR_CODE_USER;
     }
+    next(err);
   }
 };
 

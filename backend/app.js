@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const usersRoutes = require('./routes/users.js');
 const cardsRoutes = require('./routes/cards.js');
-const { ERROR_CODE_BAD_REQUEST } = require('./utils/error_codes');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 
@@ -31,10 +30,15 @@ app.use(auth);
 app.use('/users', auth, usersRoutes);
 app.use('/cards', auth, cardsRoutes);
 
-app.all('*', (req, res) => res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый ресурс не найден' }));
+app.all('*', (req, res) => res.status(404).send({ message: 'Запрашиваемый ресурс не найден' }));
 
 app.use((err, req, res, next) => {
-  res.send({ message: err.message });
+  const { statusCode = 500, message } = err;
+
+  res.status(statusCode).send({
+    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
+  });
+  next();
 });
 
 app.listen(PORT, () => {
