@@ -128,7 +128,7 @@ class Api {
 }
 
 const api = new Api({
-  baseUrl: 'https://api.horechek.students.nomoreparties.co/',
+  baseUrl: 'http://localhost:3000/',
   headers: {
     'Content-Type': 'application/json',
   }
