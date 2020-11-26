@@ -15,7 +15,7 @@
   "scripts": {
     "start": "BROWSER='yandex' react-scripts start",
     "build": "react-scripts build",
-    "server_deploy": "npm run build && scp -r ./build/* tatiana_eskina@178.154.230.219:/home/tatiana_eskina/express-mesto-front/",
+    "server_deploy": "npm run build && scp -r ./build/* tatiana_eskina@178.154.230.219:/home/tatiana_eskina/react-mesto-api-full-frontend/",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
