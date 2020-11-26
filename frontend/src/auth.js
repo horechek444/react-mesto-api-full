@@ -1,6 +1,6 @@
 import {setToken} from "./utils/token";
 
-export const BASE_URL = 'http://localhost:3000';
+export const BASE_URL = 'https://api.horechek.students.nomoreparties.co';
 
 export const register = (email, password) => {
   return fetch(`${BASE_URL}/signup`, {
