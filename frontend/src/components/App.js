@@ -37,7 +37,7 @@ const App = () => {
   const handleContentGetter = (token) => {
     return auth.getContent(token)
       .then((res) => {
-        setEmail(res.data.email);
+        setEmail(res.email);
         setLoggedIn(true);
         history.push('/');
       })
@@ -106,7 +106,7 @@ const App = () => {
   }
 
   const handleCardLike = (card) => {
-    const isLiked = card.likes.some(i => i._id === currentUser._id);
+    const isLiked = card.likes.some(i => i === currentUser._id);
     const promise = isLiked ? api.dislikeCard(card._id) : api.likeCard(card._id);
     promise
       .then((newCard) => {
@@ -145,8 +145,9 @@ const App = () => {
   };
 
   React.useEffect(() => {
+    if (!loggedIn) return;
     getUserAndCards();
-  }, []);
+  }, [loggedIn]);
 
   const handleEditAvatarClick = () => {
     setEditAvatarPopupOpen(true);
@@ -185,6 +186,7 @@ const App = () => {
     api.setUserInfo(userInfo)
       .then((userData) => {
         setCurrentUser(userData);
+        console.log(userData);
         closeAllPopups();
       })
       .catch((err) => {

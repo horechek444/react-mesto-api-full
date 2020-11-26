@@ -81,7 +81,7 @@ const login = (req, res, next) => {
             throw new BadRequest('Неправильные почта или пароль');
           }
           const token = jwtSign(user._id);
-          res.send(token);
+          res.send({ token });
         });
     })
     .catch(next);
