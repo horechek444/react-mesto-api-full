@@ -56,10 +56,8 @@ const createUser = (req, res, next) => {
       if (user) {
         throw new ConflictingRequest('Уже есть такой email');
       }
+      return bcrypt.hash(password, 10);
     })
-    .catch(next);
-
-  bcrypt.hash(password, 10)
     .then((hash) => {
       User.create({ email, password: hash })
         .then(({ _id }) => {
@@ -72,17 +70,17 @@ const createUser = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
+  return User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         throw new BadRequest('Неправильные почта или пароль');
       }
-      bcrypt.compare(password, user.password)
+      return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             throw new BadRequest('Неправильные почта или пароль');
           }
-          const token = jwtSign(user._id); // todo
+          const token = jwtSign(user._id);
           res.send(token);
         });
     })

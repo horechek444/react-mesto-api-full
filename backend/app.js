@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { celebrate, Joi, errors } = require('celebrate');
@@ -7,9 +8,12 @@ const cardsRoutes = require('./routes/cards.js');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
+
+app.use(cors());
 
 const mongoDbUrl = 'mongodb://127.0.0.1:27017/mestodb';
 const mongooseConnectOptions = {
@@ -43,8 +47,6 @@ app.use(auth);
 
 app.use('/users', auth, usersRoutes);
 app.use('/cards', auth, cardsRoutes);
-
-app.all('*', (req, res) => res.status(404).send({ message: 'Запрашиваемый ресурс не найден' }));
 
 app.use(errorLogger);
 

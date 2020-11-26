@@ -145,7 +145,6 @@ const App = () => {
   };
 
   React.useEffect(() => {
-    tokenCheck();
     getUserAndCards();
   }, []);
 
