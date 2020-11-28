@@ -6,4 +6,6 @@
 Публичный IP-адрес сервера: 178.154.230.219
 
 Домены, по которому к нему можно обратиться:  https://horechek.students.nomoreparties.co/, 
-https://www.horechek.students.nomoreparties.co/.
+https://www.horechek.students.nomoreparties.co/, 
+api: https://api.horechek.students.nomoreparties.co/, 
+https://www.api.horechek.students.nomoreparties.co/.
