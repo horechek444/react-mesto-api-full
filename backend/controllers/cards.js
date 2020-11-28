@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-const BadRequest = require('../errors/bad-request');
+const Forbidden = require('../errors/forbidden');
 const NotFoundError = require('../errors/not-found-err');
 const { ERROR_CODE } = require('../utils/error-code');
 
@@ -36,13 +36,12 @@ const deleteCard = async (req, res, next) => {
     const currentUser = req.user.id;
     const cardId = req.params.id;
     const cardForConfirm = await Card.findById(cardId);
-    if (currentUser !== cardForConfirm.owner.toString()) {
-      throw new BadRequest('Вы не владелец карточки и не можете её удалить');
+    if (cardForConfirm === null) {
+      throw new NotFoundError('Нет карточки с таким id');
+    } else if (currentUser !== cardForConfirm.owner.toString()) {
+      throw new Forbidden('Вы не владелец карточки и не можете её удалить');
     }
     const confirmedCard = await Card.findByIdAndRemove(cardId);
-    if (!cardId) {
-      throw new NotFoundError('Нет карточки с таким id');
-    }
     res.send(confirmedCard);
   } catch (err) {
     if (err.name === 'CastError') {
