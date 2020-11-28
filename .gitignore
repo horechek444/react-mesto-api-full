@@ -26,6 +26,8 @@ node_modules
 /build
 
 # misc
+frontend/.env
+backend/.env
 .env*
 *.env
 .env.local
